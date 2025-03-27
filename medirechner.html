@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediRechner</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    label { display: block; margin-top: 10px; }
+    input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin-top: 4px; }
+    button { margin-top: 20px; padding: 10px 20px; }
+    .result { margin-top: 20px; padding: 10px; background-color: #f0f0f0; }
+    .checkboxes { margin-top: 10px; }
+    .warn { color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>MediRechner</h1>
+  <form id="medForm">
+    <label>Kapseln pro Tag:
+      <input type="number" id="kapselnProTag" required>
+    </label>
+    <label>Restmenge beim Patienten:
+      <input type="number" id="restmenge" required>
+    </label>
+    <label>Packungsgröße:
+      <input type="number" id="packungsgroesse" required>
+    </label>
+    <div class="checkboxes">
+      <label><input type="checkbox" id="dopplet"> Packungsgröße verdoppeln</label>
+      <label><input type="checkbox" id="dreifach"> Packungsgröße verdreifachen</label>
+      <label><input type="checkbox" id="zusatzPackung" disabled> Zusätzliche Packung einplanen (bei frühem Lieferbeginn)</label>
+    </div>
+    <button type="submit">Berechnen</button>
+  </form>
+
+  <div id="ergebnisse" class="result" style="display: none;"></div>
+
+  <script>
+    document.getElementById('medForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const kapseln = parseFloat(document.getElementById('kapselnProTag').value);
+      let restmenge = parseFloat(document.getElementById('restmenge').value);
+      let packung = parseFloat(document.getElementById('packungsgroesse').value);
+      const verdoppeln = document.getElementById('dopplet').checked;
+      const verdreifachen = document.getElementById('dreifach').checked;
+      const zusatzPackungCheckbox = document.getElementById('zusatzPackung');
+      const heute = new Date();
+
+      const originalPackung = packung;
+      let packungMultiplikator = 1;
+      if (verdoppeln) packungMultiplikator = 2;
+      if (verdreifachen) packungMultiplikator = 3;
+      const effektivePackung = packung * packungMultiplikator;
+
+      let restReichweite = restmenge / kapseln;
+      let packungsReichweite = effektivePackung / kapseln;
+
+      const fruehesterLieferbeginn = new Date(heute);
+      fruehesterLieferbeginn.setDate(heute.getDate() + 14);
+
+      let lieferbeginn = new Date(heute);
+      lieferbeginn.setDate(heute.getDate() + Math.floor(restReichweite));
+
+      let hinweis = "";
+      let warnHinweis = false;
+
+      // Checkbox aktivieren oder deaktivieren basierend auf frühem Lieferbeginn
+      if (lieferbeginn < fruehesterLieferbeginn) {
+        zusatzPackungCheckbox.disabled = false;
+        warnHinweis = true;
+      } else {
+        zusatzPackungCheckbox.checked = false;
+        zusatzPackungCheckbox.disabled = true;
+      }
+
+      // Wenn Benutzer zusätzliche Packung aktiviert hat
+      if (!zusatzPackungCheckbox.disabled && zusatzPackungCheckbox.checked) {
+        hinweis = "Lieferung frühestens in 14 Tagen möglich. Patient sollte vorher zur Apotheke. Eine Packung zusätzlich eingeplant.";
+        restmenge += originalPackung;
+        restReichweite = restmenge / kapseln;
+        lieferbeginn = new Date(heute);
+        lieferbeginn.setDate(heute.getDate() + Math.floor(restReichweite));
+      }
+
+      let zusatzinfo = "";
+      if (packungMultiplikator > 1) {
+        zusatzinfo = `<strong>Gewählte Packungsgröße:</strong> ${originalPackung} x ${packungMultiplikator} = ${effektivePackung} Kapseln<br>`;
+      }
+
+      let rhythmusStyle = packungsReichweite < 30 ? "warn" : "";
+      let lieferStyle = lieferbeginn < fruehesterLieferbeginn ? "warn" : "";
+
+      document.getElementById('ergebnisse').style.display = 'block';
+      document.getElementById('ergebnisse').innerHTML = `
+        ${zusatzinfo}
+        <strong>Reichweite Restmenge:</strong> ${restReichweite.toFixed(1)} Tage<br>
+        <strong>Reichweite einer Packung:</strong> ${packungsReichweite.toFixed(1)} Tage<br>
+        <strong class="${lieferStyle}">Automatisch berechneter Lieferbeginn:</strong> <span class="${lieferStyle}">${lieferbeginn.toLocaleDateString()}</span><br>
+        <strong class="${rhythmusStyle}">Automatisch berechneter Lieferrhythmus:</strong> <span class="${rhythmusStyle}">${Math.floor(packungsReichweite)} Tage</span><br>
+        ${hinweis ? `<strong>Hinweis:</strong> ${hinweis}` : ""}
+      `;
+    });
+  </script>
+</body>
+</html>
