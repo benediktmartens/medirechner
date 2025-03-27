@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -8,7 +9,7 @@
     body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
     label { display: block; margin-top: 10px; }
     input[type="number"], input[type="date"] { width: 100%; padding: 8px; margin-top: 4px; }
-    button { margin-top: 20px; padding: 10px 20px; }
+    button { margin-top: 20px; padding: 10px 20px; margin-right: 10px; }
     .result { margin-top: 20px; padding: 10px; background-color: #f0f0f0; }
     .checkboxes { margin-top: 10px; }
     .warn { color: red; font-weight: bold; }
@@ -32,11 +33,18 @@
       <label><input type="checkbox" id="zusatzPackung" disabled> Zusätzliche Packung einplanen (bei frühem Lieferbeginn)</label>
     </div>
     <button type="submit">Berechnen</button>
+    <button type="button" onclick="resetForm()">Zurücksetzen</button>
   </form>
 
   <div id="ergebnisse" class="result" style="display: none;"></div>
 
   <script>
+    function resetForm() {
+      document.getElementById("medForm").reset();
+      document.getElementById("ergebnisse").style.display = 'none';
+      document.getElementById("ergebnisse").innerHTML = '';
+    }
+
     document.getElementById('medForm').addEventListener('submit', function(e) {
       e.preventDefault();
 
@@ -66,7 +74,6 @@
       let hinweis = "";
       let warnHinweis = false;
 
-      // Checkbox aktivieren oder deaktivieren basierend auf frühem Lieferbeginn
       if (lieferbeginn < fruehesterLieferbeginn) {
         zusatzPackungCheckbox.disabled = false;
         warnHinweis = true;
@@ -75,7 +82,6 @@
         zusatzPackungCheckbox.disabled = true;
       }
 
-      // Wenn Benutzer zusätzliche Packung aktiviert hat
       if (!zusatzPackungCheckbox.disabled && zusatzPackungCheckbox.checked) {
         hinweis = "Lieferung frühestens in 14 Tagen möglich. Patient sollte vorher zur Apotheke. Eine Packung zusätzlich eingeplant.";
         restmenge += originalPackung;
