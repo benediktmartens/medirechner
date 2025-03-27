@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -94,6 +95,9 @@
         zusatzinfo = `<strong>Gewählte Packungsgröße:</strong> ${originalPackung} x ${packungMultiplikator} = ${effektivePackung} Kapseln<br>`;
       }
 
+      const wochentage = ["Sonntag", "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag"];
+      const lieferWochentag = wochentage[lieferbeginn.getDay()];
+
       let rhythmusStyle = packungsReichweite < 30 ? "warn" : "";
       let lieferStyle = lieferbeginn < fruehesterLieferbeginn ? "warn" : "";
 
@@ -102,7 +106,7 @@
         ${zusatzinfo}
         <strong>Reichweite Restmenge:</strong> ${restReichweite.toFixed(1)} Tage<br>
         <strong>Reichweite einer Packung:</strong> ${packungsReichweite.toFixed(1)} Tage<br>
-        <strong class="${lieferStyle}">Automatisch berechneter Lieferbeginn:</strong> <span class="${lieferStyle}">${lieferbeginn.toLocaleDateString()}</span><br>
+        <strong class="${lieferStyle}">Automatisch berechneter Lieferbeginn:</strong> <span class="${lieferStyle}">${lieferbeginn.toLocaleDateString()} (${lieferWochentag})</span><br>
         <strong class="${rhythmusStyle}">Automatisch berechneter Lieferrhythmus:</strong> <span class="${rhythmusStyle}">${Math.floor(packungsReichweite)} Tage</span><br>
         ${hinweis ? `<strong>Hinweis:</strong> ${hinweis}` : ""}
       `;
